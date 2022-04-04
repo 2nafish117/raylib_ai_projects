@@ -2,6 +2,7 @@
 	"files.associations": {
 		"*.cs": "csharp",
 		"iostream": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"xutility": "cpp"
 	}
 }
