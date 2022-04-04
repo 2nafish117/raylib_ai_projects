@@ -1,0 +1,16 @@
+[
+{
+  "directory": "c:\\Users\\tunafish117\\Documents\\Dev\\cpp\\sfml_ai_projects",
+  "arguments": ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\bin\\HostX64\\x64\\cl.exe", "/c", "/EHsc", "/nologo", "/std:c++17", "/I.", "/DSFML_STATIC", "/Ic:\\Users\\tunafish117\\Documents\\Dev\\cpp\\sfml_ai_projects\\build\\.packages\\s\\sfml\\latest\\3e941b98498747948084327d122bab6e\\include", "/Fobuild\\.objs\\grid_algos\\windows\\x64\\debug\\grid_algos\\game_state.cpp.obj", "grid_algos\\game_state.cpp"],
+  "file": "grid_algos\\game_state.cpp"
+},
+{
+  "directory": "c:\\Users\\tunafish117\\Documents\\Dev\\cpp\\sfml_ai_projects",
+  "arguments": ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\bin\\HostX64\\x64\\cl.exe", "/c", "/EHsc", "/nologo", "/std:c++17", "/I.", "/DSFML_STATIC", "/Ic:\\Users\\tunafish117\\Documents\\Dev\\cpp\\sfml_ai_projects\\build\\.packages\\s\\sfml\\latest\\3e941b98498747948084327d122bab6e\\include", "/Fobuild\\.objs\\grid_algos\\windows\\x64\\debug\\grid_algos\\main.cpp.obj", "grid_algos\\main.cpp"],
+  "file": "grid_algos\\main.cpp"
+},
+{
+  "directory": "c:\\Users\\tunafish117\\Documents\\Dev\\cpp\\sfml_ai_projects",
+  "arguments": ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.29.30133\\bin\\HostX64\\x64\\cl.exe", "/c", "/EHsc", "/nologo", "/std:c++17", "/I.", "/DSFML_STATIC", "/Ic:\\Users\\tunafish117\\Documents\\Dev\\cpp\\sfml_ai_projects\\build\\.packages\\s\\sfml\\latest\\3e941b98498747948084327d122bab6e\\include", "/Fobuild\\.objs\\sfml_hello\\windows\\x64\\debug\\sfml_hello\\main.cpp.obj", "sfml_hello\\main.cpp"],
+  "file": "sfml_hello\\main.cpp"
+}]
