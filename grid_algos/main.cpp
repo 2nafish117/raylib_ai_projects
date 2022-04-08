@@ -1,5 +1,6 @@
 #include <iostream>
-#include <SFML/Graphics.hpp>
+
+#include <raylib.h>
 
 #include "game_state.h"
 
@@ -11,64 +12,59 @@ int main()
 	// const char* cwd = std::filesystem::current_path().generic_string().c_str();
 	// std::cout << "running from: " << cwd << "\n";
 
-	i32 err = game_state_create_from_file(&state, "./grids/grid2.txt", 32);
+	i32 err = game_state_create_from_file(&state, "assets/grids/grid2.txt", 32, 2);
 	if(err != 0) {
 		return err;
 	}
 
-	sf::RenderWindow window(sf::VideoMode(state.window_width, state.window_height), "grid algos");
+	InitWindow(state.window_width, state.window_height, "grid algos");
+	SetTargetFPS(60);
 
-	sf::RectangleShape cell_shape;
-	cell_shape.setSize(sf::Vector2f((f32) state.grid_cell_size, (f32) state.grid_cell_size));
+	Font font = LoadFont("assets/bebas-neue/BebasNeue-Regular.ttf");
 
-	while (window.isOpen()) {
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed) {
-				window.close();
-			} else if (event.type == sf::Event::KeyPressed) {
-				if(event.key.code == sf::Keyboard::P) {
-					// TODO: run the algorithm
-				}
-			}
-		}
-	
-		window.clear();
+	while (!WindowShouldClose()) {
 
 		// Input
-		if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+		if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 			// add wall	
-			sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-			sf::Vector2i cell_coord = window_to_grid_coord(&state, &state.grid, mouse_pos.x, mouse_pos.y);
-			grid_set_cell_state(&state.grid, cell_coord.x, cell_coord.y, cell_state::STATE_WALL);
+			i32 mouse_x = GetMouseX();
+			i32 mouse_y = GetMouseY();
+			cell_coord coord = window_to_grid_coord(&state, &state.grid, mouse_x, mouse_y);
+			grid_set_cell_state(&state.grid, coord, cell_state::STATE_WALL);
 		}
-		if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+		if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
 			// remove wall	
-			sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-			sf::Vector2i cell_coord = window_to_grid_coord(&state, &state.grid, mouse_pos.x, mouse_pos.y);
-			grid_set_cell_state(&state.grid, cell_coord.x, cell_coord.y, cell_state::STATE_EMPTY);
+			i32 mouse_x = GetMouseX();
+			i32 mouse_y = GetMouseY();
+			cell_coord coord = window_to_grid_coord(&state, &state.grid, mouse_x, mouse_y);
+			grid_set_cell_state(&state.grid, coord, cell_state::STATE_EMPTY);
 		}
+
 
 		// Update
 
 		// Drawing
-		for(i32 y = 0; y < state.grid.height; ++y) {
-			for(i32 x = 0; x < state.grid.width; ++x) {
-				grid_cell cell = grid_get_cell(&state.grid, x, y);
-				
-				sf::Vector2f cell_pos = grid_to_window_coord(&state, &state.grid, x, y);
-				cell_shape.setPosition(cell_pos);
-				
-				sf::Color cell_color = cell_state_get_color(cell.state);
-				cell_shape.setFillColor(cell_color);
-				
-				window.draw(cell_shape);
-			}	
-		}
-				
-		window.display();
+		
+		BeginDrawing();
+
+			ClearBackground(RAYWHITE);
+
+			for(i32 y = 0; y < state.grid.height; ++y) {
+				for(i32 x = 0; x < state.grid.width; ++x) {
+					grid_cell cell = grid_get_cell(&state.grid, {x, y});
+					cell_coord coord = grid_to_window_coord(&state, &state.grid, {x, y});
+					Color cell_color = cell_state_get_color(cell.state);
+
+					DrawRectangle(coord.x, coord.y, state.grid_cell_size, state.grid_cell_size, cell_color);
+				}	
+			}
+
+			DrawTextEx(font, "new font", {50, 50}, 50, 50, DARKBROWN);
+
+		EndDrawing();
 	}
 
 	game_state_destroy(&state);
+	CloseWindow();
 	return 0;
 }

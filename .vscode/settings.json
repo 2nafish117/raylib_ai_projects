@@ -1,8 +1,7 @@
 {
 	"files.associations": {
 		"*.cs": "csharp",
-		"iostream": "cpp",
-		"filesystem": "cpp",
-		"xutility": "cpp"
+		"*.m": "cpp",
+		"iosfwd": "cpp"
 	}
 }

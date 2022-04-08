@@ -17,6 +17,20 @@ void grid_destroy(grid* g) {
 	*g = {0};
 }
 
+// set all cell distances
+void grid_set_cell_distances(grid* g, i32 distance) {
+	for(i32 i = 0;i < g->height * g->width; ++i) {
+		g->cells[i].distance = distance;
+	}
+}
+
+// set all cell states
+void grid_set_cell_states(grid* g, cell_state state) {
+	for(i32 i = 0;i < g->height * g->width; ++i) {
+		g->cells[i].state = state;
+	}
+}
+
 void game_state_create(
 		game_state* state,
 		i32 grid_width,
@@ -66,21 +80,21 @@ i32 game_state_create_from_file(game_state* state, const char* path, i32 grid_ce
 			switch(c) {
 				case '.': {
 					// empty
-					grid_set_cell_state(grid, x, y, cell_state::STATE_EMPTY);
+					grid_set_cell_state(grid, {x, y}, cell_state::STATE_EMPTY);
 				} break;
 				case '#': {
 					// wall
-					grid_set_cell_state(grid, x, y , cell_state::STATE_WALL);
+					grid_set_cell_state(grid, {x, y} , cell_state::STATE_WALL);
 				} break;
 				case 's':
 				case 'S': {
 					// source
-					grid_set_cell_state(grid, x, y , cell_state::STATE_SOURCE);
+					grid_set_cell_state(grid, {x, y} , cell_state::STATE_SOURCE);
 				} break;
 				case 'd':
 				case 'D': {
 					// destination
-					grid_set_cell_state(grid, x, y , cell_state::STATE_DEST);
+					grid_set_cell_state(grid, {x, y} , cell_state::STATE_DEST);
 				} break;
 				default: {
 					printf("\ninvalid grid charecter %c in file %s at x: %d y: %d\n", c, path, x, y);
@@ -96,4 +110,10 @@ i32 game_state_create_from_file(game_state* state, const char* path, i32 grid_ce
 
 void game_state_destroy(game_state* state) {
 	grid_destroy(&state->grid);
+	*state = {0};
+}
+
+void game_state_handle_resize(game_state* state, i32 width, i32 height) {
+	state->window_width = width;
+	state->window_height = height;
 }

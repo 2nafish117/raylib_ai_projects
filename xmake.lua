@@ -1,133 +1,59 @@
 add_rules("mode.debug", "mode.release")
 
-package("sfml")
+set_languages("c99", "c++17")
+
+-- package("raylib")
+--     add_deps("cmake")
+--     set_sourcedir(path.join(os.scriptdir(), "raylib"))
+-- 	add_syslinks("gdi32", "user32", "winmm", "shell32")
+
+--     on_install(function (package)
+--         local configs = {}
+--         table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
+--         table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
+--         import("package.tools.cmake").install(package, configs)
+--     end)
+--     on_test(function (package)
+--         -- assert(package:has_cfuncs("add", {includes = "foo.h"}))
+--     end)
+-- package_end()
+
+package("raylib")
 	add_deps("cmake")
-    set_sourcedir(path.join(os.scriptdir(), "sfml"))
+	set_sourcedir(path.join(os.scriptdir(), "raylib"))
 
-    add_configs("graphics",   {description = "Use the graphics module", default = true, type = "boolean"})
-    add_configs("window",     {description = "Use the window module", default = true, type = "boolean"})
-    add_configs("audio",      {description = "Use the audio module", default = true, type = "boolean"})
-    add_configs("network",    {description = "Use the network module", default = true, type = "boolean"})
-    add_configs("main",       {description = "Link to the sfml-main library", default = true, type = "boolean"})
+    if is_plat("macosx") then
+        add_frameworks("CoreVideo", "CoreGraphics", "AppKit", "IOKit", "CoreFoundation", "Foundation")
+    elseif is_plat("windows") then
+        add_syslinks("gdi32", "user32", "winmm", "shell32")
+    elseif is_plat("linux") then
+        add_syslinks("pthread", "dl", "m")
+        add_deps("libx11", "libxrandr", "libxrender", "libxinerama", "libxcursor", "libxi", "libxfixes", "libxext")
+    end
 
-    on_load("windows", "linux", "macosx", "mingw", function (package)
-        if package:is_plat("windows") then
-            package:add("deps", "cmake")
-        end
+    add_deps("opengl", {optional = true})
 
-        if not package:config("shared") then
-            package:add("defines", "SFML_STATIC")
-        end
-
-        local e = ""
-        local a = "sfml-"
-        if package:is_plat("windows", "mingw") then
-            if not package:config("shared") then
-                e = "-s"
-            end
-            if package:debug() then
-                e = e .. "-d"
-            end
-        end
-        local main_module = a .. "main"
-        if package:debug() then
-            main_module = main_module .. "-d"
-        end
-
-        if package:config("graphics") then
-            if package:is_plat("mingw") then
-                package:add("links", a .. "graphics" .. e)
-                package:add("links", "freetype")
-            end
-        end
-        if package:config("window") or package:config("graphics") then
-            if package:is_plat("mingw") then
-                package:add("links", a .. "window" .. e)
-            end
-            if package:is_plat("windows", "mingw") then
-                package:add("syslinks", "opengl32", "gdi32", "user32", "advapi32")
-            end
-            if package:is_plat("linux") then
-                package:add("deps", "libx11", "libxrandr", "freetype", "eudev")
-                package:add("deps", "opengl", "glx", {optional = true})
-            end
-        end
-        if package:config("audio") then
-            if package:is_plat("mingw") then
-                package:add("links", a .. "audio" .. e)
-                package:add("links", "openal32", "flac", "vorbisenc", "vorbisfile", "vorbis", "ogg")
-            elseif package:is_plat("linux") then
-                package:add("deps", "libogg", "libflac", "libvorbis", "openal-soft")
-            end
-        end
-        if package:config("network") then
-            if package:is_plat("mingw") then
-                package:add("links", a .. "network" .. e)
-            end
-            if package:is_plat("windows", "mingw") then
-                package:add("syslinks", "ws2_32")
-            end
-        end
-        if package:is_plat("mingw") then
-            package:add("links", a .. "system" .. e)
-            package:add("links", main_module)
-        end
-        if package:is_plat("windows", "mingw") then
-            package:add("syslinks", "winmm")
-        end
-    end)
-
-    on_install("windows", "linux", function (package)
-        local configs = {"-DSFML_BUILD_DOC=OFF", "-DSFML_BUILD_EXAMPLES=OFF"}
+    on_install("windows", "linux", "macosx|arm64", function (package)
+        local configs = {"-DBUILD_EXAMPLES=OFF"}
         table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
-        if package:config("shared") then
-            table.insert(configs, "-DBUILD_SHARED_LIBS=ON")
-        else
-            table.insert(configs, "-DBUILD_SHARED_LIBS=OFF")
-            if package:is_plat("windows") and package:config("vs_runtime"):startswith("MT") then
-                table.insert(configs, "-DSFML_USE_STATIC_STD_LIBS=ON")
-            end
-        end
-        table.insert(configs, "-DSFML_BUILD_AUDIO=" .. (package:config("audio") and "ON" or "OFF"))
-        table.insert(configs, "-DSFML_BUILD_GRAPHICS=" .. (package:config("graphics") and "ON" or "OFF"))
-        table.insert(configs, "-DSFML_BUILD_WINDOW=" .. (package:config("window") and "ON" or "OFF"))
-        table.insert(configs, "-DSFML_BUILD_NETWORK=" .. (package:config("network") and "ON" or "OFF"))
-        import("package.tools.cmake").install(package, configs)
-    end)
-
-    on_install("macosx", "mingw", function (package)
-        os.cp("lib", package:installdir())
-        os.cp("include", package:installdir())
-        if package:is_plat("mingw") then
-            os.cp("bin/*", package:installdir("lib"), {rootdir = "bin"})
-        end
-    end)
-
-    on_test(function (package)
-        assert(package:check_cxxsnippets({test = [[
-            void test(int args, char** argv) {
-                sf::Clock c;
-                c.restart();
-            }
-        ]]}, {includes = "SFML/System.hpp"}))
+        table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
+        import("package.tools.cmake").install(package, configs, {packagedeps = {"libx11", "libxrender", "libxrandr", "libxinerama", "libxcursor", "libxi", "libxfixes", "libxext"}})
     end)
 package_end()
 
 add_includedirs(".")
-add_requires("sfml", { debug = true })
+add_requires("raylib", { debug = true })
 
-target("sfml_hello")
-	set_languages("c99", "c++17")
-    set_kind("binary")
-    add_files("sfml_hello/*.cpp")
-	add_packages("sfml")
-	set_rundir("$(projectdir)/sfml_hello")
+target("raylib_hello")
+	set_kind("binary")
+	add_files("raylib_hello/*.cpp")
+	add_packages("raylib")
+	set_rundir("$(projectdir)/raylib_hello")
 
 target("grid_algos")
-	set_languages("c99", "c++17")
-    set_kind("binary")
-    add_files("grid_algos/*.cpp")
-	add_packages("sfml")
+	set_kind("binary")
+	add_files("grid_algos/*.cpp")
+	add_packages("raylib")
 	set_rundir("$(projectdir)/grid_algos")
 
 --
