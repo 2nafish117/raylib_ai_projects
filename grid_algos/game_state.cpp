@@ -9,7 +9,7 @@ void grid_create(grid* g, i32 width, i32 height) {
 	g->height = height;
 	
 	g->cells = new grid_cell[width * height];
-	memset(g->cells, cell_state::STATE_EMPTY, sizeof(grid_cell) * width * height);
+	memset(g->cells, 0, sizeof(grid_cell) * width * height);
 }
 
 void grid_destroy(grid* g) {
@@ -17,17 +17,23 @@ void grid_destroy(grid* g) {
 	*g = {0};
 }
 
+void grid_reset_visited(grid* g) {
+	for(i32 i = 0; i < g->width * g->height; ++i) {
+		g->cells[i].flags = g->cells[i].flags & ~CELL_VISITED_BIT;
+	}
+}
+
 // set all cell distances
-void grid_set_cell_distances(grid* g, i32 distance) {
+void grid_set_all_cell_distances(grid* g, i32 distance) {
 	for(i32 i = 0;i < g->height * g->width; ++i) {
 		g->cells[i].distance = distance;
 	}
 }
 
-// set all cell states
-void grid_set_cell_states(grid* g, cell_state state) {
+// set all cell flags
+void grid_set_all_cell_flags(grid* g, cell_flags flags) {
 	for(i32 i = 0;i < g->height * g->width; ++i) {
-		g->cells[i].state = state;
+		g->cells[i].flags = flags;
 	}
 }
 
@@ -42,14 +48,14 @@ void game_state_create(
 
 	grid_create(&state->grid, grid_width, grid_height);
 
-	i32 window_width = grid_cell_size * grid_width + grid_cell_padding * (grid_width + 1);
+	// right text area = 200 + actual space for cells
+	i32 text_region_size = 200;
+	i32 window_width = text_region_size + grid_cell_size * grid_width + grid_cell_padding * (grid_width + 1);
 	i32 window_height = grid_cell_size * grid_height + grid_cell_padding * (grid_height + 1);
 
+	state->text_region_size = text_region_size;
 	state->window_width = window_width;
 	state->window_height = window_height;
-
-	// state->grid_cell_shape = sf::RectangleShape(sf::Vector2f((f32) grid_cell_size, (f32) grid_cell_size));
-	// state->window = sf::RenderWindow(sf::VideoMode(window_width, window_height), "grid algos");
 }
 
 i32 game_state_create_from_file(game_state* state, const char* path, i32 grid_cell_size, i32 grid_cell_padding) {
@@ -80,21 +86,25 @@ i32 game_state_create_from_file(game_state* state, const char* path, i32 grid_ce
 			switch(c) {
 				case '.': {
 					// empty
-					grid_set_cell_state(grid, {x, y}, cell_state::STATE_EMPTY);
+					grid_set_cell_flags(grid, {x, y}, 0);
 				} break;
 				case '#': {
 					// wall
-					grid_set_cell_state(grid, {x, y} , cell_state::STATE_WALL);
+					grid_set_cell_flags(grid, {x, y} , CELL_BLOCKED_BIT);
 				} break;
 				case 's':
 				case 'S': {
 					// source
-					grid_set_cell_state(grid, {x, y} , cell_state::STATE_SOURCE);
+					grid_set_src(grid, {x, y});
+					// grid_set_cell_flags(grid, {x, y} , CELL_SRC_BIT);
+					// grid->src = {x, y};
 				} break;
 				case 'd':
 				case 'D': {
 					// destination
-					grid_set_cell_state(grid, {x, y} , cell_state::STATE_DEST);
+					grid_set_dst(grid, {x, y});
+					// grid_set_cell_flags(grid, {x, y} , CELL_DST_BIT);
+					// grid->dst = {x, y};
 				} break;
 				default: {
 					printf("\ninvalid grid charecter %c in file %s at x: %d y: %d\n", c, path, x, y);
@@ -111,9 +121,4 @@ i32 game_state_create_from_file(game_state* state, const char* path, i32 grid_ce
 void game_state_destroy(game_state* state) {
 	grid_destroy(&state->grid);
 	*state = {0};
-}
-
-void game_state_handle_resize(game_state* state, i32 width, i32 height) {
-	state->window_width = width;
-	state->window_height = height;
 }
