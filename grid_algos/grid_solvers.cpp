@@ -5,11 +5,13 @@ void grid_traverse_bfs(grid* g, grid_coord src, bool allow_diagonal) {
 	std::queue<grid_coord> queue;
 
 	// set all to unvisited
-	grid_set_all_cell_distances(g, INT32_MAX);
+	grid_set_all_visited(g, false);
+	//set all distance as INT_MAX
+	grid_set_cell_distances(g, INT32_MAX);
 	
 	//set distance to source as 0
 	grid_set_cell_distance(g, g->src, 0);
-	grid_set_cell_flags(g, g->src, );
+	grid_set_cell_visited(g, g->src, false);
 
 	// push source into queue
 	queue.push(src);
@@ -18,36 +20,39 @@ void grid_traverse_bfs(grid* g, grid_coord src, bool allow_diagonal) {
 		grid_coord coord = queue.front();
 		queue.pop();
 
-		grid_cell cell = grid_get_cell(g, coord);
-		// if unvisited
-		if(cell.state != cell_state::STATE_WALL) {
-			grid_coord neighbour_coords[8] = {
-				// vertical horizontal
-				{coord.x, coord.y - 1},
-				{coord.x, coord.y + 1},
-				{coord.x - 1, coord.y},
-				{coord.x + 1, coord.y},
-				// diagonal
-				{coord.x + 1, coord.y + 1},
-				{coord.x + 1, coord.y - 1},
-				{coord.x - 1, coord.y + 1},
-				{coord.x - 1, coord.y - 1}
-			};
+		// b8 curr_visited = grid_get_cell_visited(g, coord);
+		i32 curr_distance = grid_get_cell_distance(g, coord);
+		// cell_state curr_state = grid_get_cell_state(g, coord);
 
-			i32 num_neighbours = allow_diagonal ? 8 : 4;
-			// for each neighbour check and push on queue
-			for(i32 i = 0;i < num_neighbours; ++i) {
-				grid_coord n = neighbour_coords[i];
-				if(n.x >= 0 && n.x < g->width && n.y >= 0 && n.y < g->height) {
-					grid_cell ncell = grid_get_cell(g, n);
+		grid_coord neighbour_coords[8] = {
+			// vertical horizontal
+			{coord.x, coord.y - 1},
+			{coord.x, coord.y + 1},
+			{coord.x - 1, coord.y},
+			{coord.x + 1, coord.y},
+			// diagonal
+			{coord.x + 1, coord.y + 1},
+			{coord.x + 1, coord.y - 1},
+			{coord.x - 1, coord.y + 1},
+			{coord.x - 1, coord.y - 1}
+		};
 
-					if(ncell.state != cell_state::STATE_VISITED && ncell.state != cell_state::STATE_WALL) {
-						i32 dist = MIN(ncell.distance, 1 + cell.distance);
-						grid_set_cell_distance(g, n, dist);
-						grid_set_cell_state(g, n, cell_state::STATE_VISITED);
-						queue.push(n);
-					}
-				}
+		i32 num_neighbours = allow_diagonal ? 8 : 4;
+		// for each neighbour check and push on queue
+		for(i32 i = 0;i < num_neighbours; ++i) {
+			grid_coord n = neighbour_coords[i];
+			if(!grid_coord_valid(g, n)) {
+				continue;
+			}
+			i32 n_distance = grid_get_cell_distance(g, n);
+			b8 n_visited = grid_get_cell_visited(g, n);
+			cell_state n_state = grid_get_cell_state(g, n);
+
+			if(!n_visited && n_state != cell_state::BLOCKED) {
+				i32 new_distance = MIN(n_distance, 1 + curr_distance);
+				grid_set_cell_distance(g, n, new_distance);
+				grid_set_cell_visited(g, n, true);
+				queue.push(n);
 			}
 		}
 	}

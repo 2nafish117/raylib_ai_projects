@@ -23,28 +23,28 @@ int main()
 
 	TraceLog(LOG_DEBUG, "hello from raylib logger %i %s %f", 32, "stringer", 54.56);
 
-	Font font = LoadFont("assets/bebas-neue/BebasNeue-Regular.ttf");
+	// Font font = LoadFont("assets/bebas-neue/BebasNeue-Regular.ttf");
+	Font font = LoadFontEx("assets/bebas-neue/BebasNeue-Regular.ttf", 28, NULL, 0);
 
 	while (!WindowShouldClose()) {
-
 		// Input
 		if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 			// add wall	
 			i32 mouse_x = GetMouseX();
 			i32 mouse_y = GetMouseY();
-			grid_coord coord = window_to_grid_coord(&state, &state.grid, mouse_x, mouse_y);
-			grid_set_cell_state(&state.grid, coord, cell_state::STATE_WALL);
+			grid_coord coord = window_to_grid_coord(&state, &state.grid, {(f32) mouse_x, (f32) mouse_y});
+			grid_set_cell_state(&state.grid, coord, cell_state::BLOCKED);
 		}
 		if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
 			// remove wall	
 			i32 mouse_x = GetMouseX();
 			i32 mouse_y = GetMouseY();
-			grid_coord coord = window_to_grid_coord(&state, &state.grid, mouse_x, mouse_y);
-			grid_set_cell_state(&state.grid, coord, cell_state::STATE_EMPTY);
+			grid_coord coord = window_to_grid_coord(&state, &state.grid, {(f32) mouse_x, (f32) mouse_y});
+			grid_set_cell_state(&state.grid, coord, cell_state::EMPTY);
 		}
 		if(IsKeyPressed(KEY_A)) {
 			// solve graph
-			grid_traverse_bfs(&state.grid, state.grid.src, true);
+			grid_traverse_bfs(&state.grid, state.grid.src, false);
 		}
 
 
@@ -58,18 +58,19 @@ int main()
 
 			for(i32 y = 0; y < state.grid.height; ++y) {
 				for(i32 x = 0; x < state.grid.width; ++x) {
-					grid_cell cell = grid_get_cell(&state.grid, {x, y});
-					grid_coord coord = grid_to_window_coord(&state, &state.grid, {x, y});
-					Color cell_color = cell_state_get_color(cell.state);
+					Vector2 coord = grid_to_window_coord(&state, &state.grid, {x, y});
+					Color cell_color = grid_get_cell_color(&state.grid, {x, y});
+					i32 cell_distance = grid_get_cell_distance(&state.grid, {x, y});
 
 					DrawRectangle(coord.x, coord.y, state.grid_cell_size, state.grid_cell_size, cell_color);
+
 					char dist_str_buf[16] = {0};
-					if(cell.distance == INT32_MAX) {
-						strcpy_s(dist_str_buf, "X");
+					if(cell_distance == INT32_MAX) {
+						// strcpy_s(dist_str_buf, "X");
 					} else {
-						_itoa_s(cell.distance, dist_str_buf, 10);
+						_itoa_s(cell_distance, dist_str_buf, 10);
 					}
-					DrawTextEx(font, dist_str_buf, {(f32)coord.x, (f32)coord.y}, 24, 2, GREEN);
+					DrawTextEx(font, dist_str_buf, {(f32)coord.x, (f32)coord.y}, 28, 0, GREEN);
 				}	
 			}
 
