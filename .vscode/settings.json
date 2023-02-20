@@ -1,9 +1,8 @@
 {
-	"files.associations": {
-		"*.cs": "csharp",
-		"*.m": "cpp",
-		"iosfwd": "cpp",
-		"xiosbase": "cpp",
-		"xutility": "cpp"
-	}
+    "files.associations": {
+        "cstring": "cpp",
+        "string": "cpp",
+        "cctype": "cpp"
+    },
+    "cmake.configureOnOpen": true
 }
